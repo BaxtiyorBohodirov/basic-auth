@@ -2,32 +2,35 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+use yii\db\Query;
+use yii\debug\models\search\Db;
+
+class User extends ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
 
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
+    public function behaviors()
+    {
+        return [
+            TimestampBehavior::class,
+        ];
+    }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        unset($fields['password_hash'], $fields['auth_key']);
+        return $fields;
+    }
+    public function attributes()
+    {
+        return ['id', 'username', 'email', 'status', 'created_at', 'updated_at', 'password_hash'];
+    }
 
+    public static function tableName() {
+        return 'users';
+    }
     /**
      * {@inheritdoc}
      */
@@ -58,13 +61,8 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
-        }
-
-        return null;
+        $user = self::find()->where(['username' => $username])->one();
+        return $user;
     }
 
     /**
