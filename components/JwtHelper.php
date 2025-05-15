@@ -19,7 +19,7 @@ class JwtHelper
 
     public static function validateToken($token) {
         try {
-            return JWT::decode($token, new Key(self::$secret, 'HS256'));
+            return JWT::decode($token, new Key( $_ENV['JWT_SECRET'], 'HS256'));
         }
         catch (\Exception $e) {
             return false;
